@@ -13,8 +13,8 @@ Part of the **sistrix-tracking-strategy-builder** skill (CC BY 4.0 — Eoghan He
 - 9.3 — Competitor configuration
 - 9.4 — Tag taxonomy: the tag-position convention and tag naming
 - 9.7 — The brand-mention tag
-- 12 — Write: the CSV import contract, upload settings, verification
-- 13 — Analyse: what the API serves for tracker prompts, what it cannot, and the UI route to per-answer visibility
+- 12 — Write: the CSV import contract, upload settings, the import dialog's country caveat, changing a prompt's market, verification (API re-read plus the UI flag-and-language check)
+- 13 — Analyse: what the API serves for tracker prompts, what it cannot, and the two UI routes to per-answer visibility
 - 15 — SISTRIX gate items
 
 **Verification note.** Every platform fact below was observed at last
@@ -31,8 +31,11 @@ Extend the core §7.2 `platform:` block with:
 - `tracker_hash` — the AI tracker's opaque id from `ai_tracker_overview`;
   discovered, never guessed (`sistrix-mcp`, Mental model).
 - `upload_settings` per market: `language`, `country`, `engines` (list),
-  `frequency` (`daily` | `weekly`). These are set in the UI at upload time
-  and are invisible in the CSV, so the intake state is the only record.
+  `frequency` (`daily` | `weekly`). These are set in the UI at upload time,
+  are invisible in the CSV and are not returned by the API either, so the
+  intake state is the only written record — and the UI by-prompts view
+  (§12, Verification) is the only place the country and language actually
+  applied can be read back per prompt.
 - `quota`: `monthly_updates`, `reserved`, `user_requested`, `remaining`,
   `last_read_on` — read off the projects list, arbitrated by the billing
   tooltip where the printed figures disagree (§9.1), because the plan's
@@ -66,7 +69,7 @@ Extend the core §7.2 `platform:` block with:
 | Field | What the API gives | Gap |
 |---|---|---|
 | Plan quota (monthly updates, reserved, user-requested, remaining) | nothing | Read the four figures printed on the projects list, using the billing tooltip to arbitrate disagreements (§9.1), and record them; ask the user for the plan's update allowance if the UI is not reachable. |
-| Upload settings (language, country, engines, frequency) of an existing tracker | not returned per prompt | Ask the user, or read the tracker's settings page; record in intake state. |
+| Upload settings (language, country, engines, frequency) of an existing tracker | not returned per prompt — the `view=prompts` row is `{prompt, brand_found, avg_pos, tags, models}`, with no country and no language field | Ask the user, or read the tracker's settings page; record in intake state. For the country and language actually applied to each prompt, read the flag and language column in the UI by-prompts view (§12, Verification) — an API re-read cannot verify them, and passed while two markets ran a week under the wrong country. |
 | Per-prompt answer text for tracker prompts | `ai_prompt_answers` serves only the global prompt pool — a tracker prompt returns `SISTRIX API Error (1000): no result` | Expected, not a defect. Qualitative reading of tracker answers happens in the UI; the API gives presence, position, tags and sources. |
 | Per-country entity counts | `country` filter can silently no-op | A per-country value identical to the all-countries aggregate is a fallback artefact, not data (`sistrix-mcp`). |
 | Per-answer visibility (executions naming the brand) | `ai_tracker view=prompts` gives `brand_found` (a per-question ever-flag) and `avg_pos`, and **no execution counts** | Not derivable from the API. Take it from the UI by-tags view with the period selector (§13) and state the window. Never substitute a `brand_found` tally (core §13.5). |
@@ -206,6 +209,22 @@ taken **before prompts are authored**, not at upload:
   the path that will actually be used) before a single prompt is written.
   A set authored for a pair the tool cannot take is wasted work that only
   surfaces at upload.
+- **The import dialog's country selection was not applied at last check
+  — treat only the language's default country as import-reachable until
+  a re-test says otherwise.** In one account, files imported with a
+  non-default country selected (the hidden form field confirmed the
+  selection before submit) landed on the country implied by the file
+  language: English on the United Kingdom, German on Germany. The working
+  hypothesis, under test at the time of writing, is that the CSV import
+  derives country from language; a French-language file imported with
+  France selected was the test case and its result was not yet known. The
+  manual panel did set a non-default country correctly (§12). Until the
+  hypothesis is resolved, this narrows the bulk path further than the
+  table says: a **language–default-country** pair is bulk, and every other
+  pair — Austria for German, Switzerland for any of its languages, the
+  USA for English — is priced as manual-panel work, or as an import plus
+  a flag check after the first run and a manual re-entry if the flag is
+  wrong. Record which the plan assumes.
 
 SISTRIX iterates on both lists; re-read them in the live dialogs at the
 start of any market-scope discussion and update the table above.
@@ -276,11 +295,11 @@ cardinality rule resolves to the "one multi-valued field only" shape, so:
   is created normally, but the UI's multi-select tag filter
   HTML-entity-encodes the ampersand before URL-encoding it, so any tag
   containing `&` matches nothing and is **silently dropped** from the
-  selection. Observed: a fourteen-tag "everything except the branded tag"
-  selection on a sources report applied only the six ampersand-free tags
-  and returned roughly 45% of every unfiltered count — a smaller,
-  plausible number, not an error. So write `corporate and m-and-a`,
-  `brand-and-competitive`, `banking-finance`; keep tag strings to letters,
+  selection. The failure shape: an "everything except the branded tag"
+  selection on a sources report applies only the ampersand-free tags and
+  returns a fraction of every unfiltered count — a smaller, plausible
+  number, not an error. So write `home-and-garden`,
+  `brand-and-competitive`, `food-drink`; keep tag strings to letters,
   digits, spaces and hyphens generally, since a name that is legal in the
   data model can still be unreachable through the interface. The read-side
   tell and the single-tag URL workaround are in `sistrix-mcp`
@@ -346,6 +365,16 @@ objects**, not a paste box, so it is not an authoring route either.
 - **Language and country are not in the CSV** — selected in the UI at
   upload, applying to the whole file. **Engines** and **run frequency**
   are also chosen at upload, not per prompt.
+- **The dialog's country selection was not applied at last check.**
+  Imported prompts — new texts and re-added ones alike — landed on the
+  country implied by the file language (English → United Kingdom, German →
+  Germany) regardless of the country chosen in the dialog, in one account
+  across two upload rounds. Working hypothesis, under test: the import
+  derives country from language. Consequence until it is resolved: route
+  every prompt whose market is not the language's default country through
+  the manual **Add prompt** panel, which did apply the selected country
+  (below), or import it and check the flag after its first run (§12,
+  Verification). §9.2 holds the market-scope consequence.
 - **The dialog's country and language menus are short, and they are not the
   same menus the manual panel offers** (verified at last check): eight
   countries plus "All" (Germany, Switzerland, Austria, United Kingdom,
@@ -388,6 +417,33 @@ behaviours make it slower than it looks (verified at last check):
   each submission. A missed reset silently files the prompt under the
   wrong market or the wrong frequency.
 
+Against that cost, one thing the panel does that the import did not at
+last check: **it applied the selected country** — a prompt entered
+manually with a non-default country carried that country's flag
+afterwards. So the panel is not only the fallback for pairs the import
+dialog does not list; it is, until the import's country handling is
+re-tested, the reliable route for any non-default-country prompt.
+
+### Changing a prompt's market
+
+**Delete-and-reimport of the same prompt text does not change its
+market** (observed at last check, one account). When prompts running under
+the wrong country were bulk-deleted and the same texts re-imported with
+the correct country selected, they reappeared with the **old country flag
+and the old execution history** — the platform keys prompt identity on the
+text and revived the earlier records. Two mechanisms were in play and the
+second explains the first: the import did not apply the country selection
+even to never-before-seen texts (above), and a re-added text resurfaces
+its previous record. Either way the correction did not happen, and the
+revived records carried their pre-deletion executions into the current
+window as if nothing had been touched. To change a prompt's
+market: delete the wrong-market prompt, re-enter it through the manual
+panel with the correct country, and check the flag after the first run.
+Generic form: when a platform deduplicates on content, deleting and
+re-adding the same content may resurrect the old object with its old
+settings — verify a setting change on an object the platform has never
+seen before, not on a re-added one.
+
 ### Wave order
 
 There are no API writes, so the core's wave ordering collapses to: (1)
@@ -404,8 +460,47 @@ prompt count per first-tag category equals the approved allocation; every
 row carries exactly one `type:` tag; no prompt lost its tags in transit
 (a `tags:[]` row that is not a duplicate is an upload defect). Record the
 result as the verification log (core §12.6) and the upload settings used.
-The first Analyse waits for the first complete run at the chosen
-frequency (§4.12).
+
+**Then the mandatory UI step: check every new prompt's country flag and
+language against the recorded upload settings.** The API row is `{prompt,
+brand_found, avg_pos, tags, models}` — it carries **no country and no
+language**, so the re-read above verifies exactly the fields the CSV
+carried and is structurally blind to the settings the CSV did not. That
+is not a theoretical gap: the API verification passes while the UI shows
+prompts flagged with the account-default country and language, and every
+run until someone looks measures the wrong market. Mechanics, as observed
+in one account at last check:
+
+- **Where:** the tracker's prompts area, **prompts → by prompts**, at
+  `ai.sistrix.com/monitoring/<hash>/prompts-grouped/tags/tags/lang/all/period/<p>`.
+  Each row shows the prompt, a country flag icon and a language-code cell.
+- **Reading the flag programmatically:** the flag is an inline SVG sprite
+  whose `viewBox` y-offset selects the country. Values seen in one account:
+  `10080` Germany, `13860` United Kingdom, `3960` Belgium. Treat these as
+  that account's observed values, not a lookup table — confirm one known
+  prompt per market before trusting the offsets, and prefer the visible
+  flag or a hover title where the page offers one.
+- **Pagination:** page links are hidden `span.page-lnk-N` anchors that
+  exist only near the current page, so loop to the highest available `N`
+  and repeat until no higher one appears; a single-page read of a
+  multi-page list silently passes the unread prompts.
+- **What else the row carries:** a **Visibility score** (share of
+  executions naming the brand) and **Executions** for the period in the
+  URL — the per-answer figures §13 needs, without going through the
+  by-tags route.
+- **Newly added prompts are invisible in the period views until their
+  first run.** A prompt uploaded minutes ago does not appear in a 7d or
+  30d by-prompts list (the list appears to show only prompts with runs in
+  the window), so an immediate post-upload check passes vacuously. A view
+  that lists unrun prompts had not been identified at last check; until
+  one is, run the flag-and-language check **after the first run** and
+  treat it as blocking for the first Analyse — a wrong market found then
+  costs one run, found at the first report it costs the window.
+
+Record the check (view, period, number of prompts checked, any prompt
+whose flag or language disagreed with the upload settings, and the fix
+applied) in the verification log. The first Analyse waits for the first
+complete run at the chosen frequency (§4.12) — and for this check.
 
 ---
 
@@ -452,6 +547,16 @@ any number, then:
   - **Check for a second page of the tags table.** It paginates and says
     "of N pages"; a set read off page 1 alone silently drops whole cohorts,
     and the resulting figure looks entirely plausible.
+  - **The by-prompts view is the second route to the same two figures.**
+    **prompts → by prompts**
+    (`…/prompts-grouped/tags/tags/lang/all/period/<p>`) lists every prompt
+    as its own row with Visibility score and Executions for the period in
+    the URL, plus the country flag and language — so one pull serves both
+    the per-prompt table and the §12 market check. It has no tag nesting to
+    expand, but it paginates through hidden `span.page-lnk-N` anchors that
+    appear only near the current page (§12, Verification), and it lists
+    only prompts with runs in the period, so a prompt missing from it is
+    either unrun or wrongly filtered, not absent from the tracker.
   Sanity-check the result: executions per prompt should equal engines × runs
   in the window (e.g. four engines × six runs = 24). A prompt whose execution
   count is far off that product was added mid-window or did not run — handle
@@ -488,7 +593,9 @@ Add to the core's gates:
 - **Pre-authoring (§15.1):** every language–country pair in the approved
   market scope checked against **both** SISTRIX lists (§9.2) and recorded
   as import-capable, manual-panel-only (with the extra cost accepted by the
-  user) or impossible (with the fallback decided). Run this before a single
+  user) or impossible (with the fallback decided) — where, until the import
+  dialog's country handling is re-tested, import-capable means the
+  language's default country only (§9.2). Run this before a single
   prompt is written — it is the one gate whose failure cannot be fixed
   after the fact, only re-authored.
 - **Pre-Write (§15.1):** budget derived from the quota formula with the
@@ -499,8 +606,15 @@ Add to the core's gates:
   tag name** (§9.4 — unfilterable in the UI, and expensive to rename
   later), UTF-8 clean, one file per language–country pair, tag spellings
   identical across files.
+- **Post-upload (§12.5):** every newly uploaded prompt's country flag and
+  language read in the UI by-prompts view and reconciled against the
+  recorded upload settings, after the first run (§12, Verification); any
+  prompt on the wrong market re-entered through the manual panel, not
+  re-imported (§12, "Changing a prompt's market"). The API re-read alone
+  does not pass this gate — it cannot see either field.
 - **Pre-Analyse (§15.2):** at least one complete run at the tracker's
-  frequency has finished; `ai_tracker view=prompts` deduped before any
+  frequency has finished; the post-upload flag-and-language check above
+  is recorded as passed; `ai_tracker view=prompts` deduped before any
   count; the aggregate competitor view's caveat attached to any figure
   taken from it; **no `brand_found` tally reported as visibility** — where a
   visibility figure is needed, the per-answer share is pulled from the UI

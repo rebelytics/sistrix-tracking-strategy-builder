@@ -1,7 +1,7 @@
 ---
 name: sistrix-tracking-strategy-builder
 description: 'SISTRIX companion to the platform-agnostic `ai-visibility-tracking-strategy-builder` skill — build or refine an AI visibility tracking strategy on SISTRIX''s custom prompt tracking (AI trackers), with this skill holding everything SISTRIX-specific: the tag-only grouping model and the tag-position convention, the semicolon CSV import format and its per-market/per-upload constraints, the update-quota budget formula and the daily-vs-weekly trade-off, competitor configuration, and how the Analyse step reads tracker data through the SISTRIX API/MCP. Load whenever the user mentions a SISTRIX AI tracker, SISTRIX custom prompts, "what prompts should we track in SISTRIX", a SISTRIX prompt CSV, SISTRIX AI visibility budget or quota, or an AI visibility strategy for a brand that uses SISTRIX. Requires the core skill `ai-visibility-tracking-strategy-builder` loaded alongside; companion to `sistrix-mcp` (recommended; API and MCP mechanics).'
-version: 1.2.0
+version: 1.3.0
 license: CC-BY-4.0
 origin: https://github.com/rebelytics/sistrix-tracking-strategy-builder
 maintainer: Eoghan Henn / rebelytics (eoghan@rebelytics.com)
@@ -56,9 +56,11 @@ skill supplies the SISTRIX mechanics each phase needs.
 custom prompts enter a SISTRIX AI tracker through a CSV upload in the UI
 (§12 below), so the core's §14.16 "configuration deliverable for
 platforms without a write API" applies: the validated CSV per market is
-the write, and a re-read of the tracker's prompt list through the API is
-the verification. Re-check whether SISTRIX has since added a write
-endpoint before assuming this.
+the write, and the verification is in two parts — a re-read of the
+tracker's prompt list through the API for prompt texts and tags, plus a
+UI check of each new prompt's country flag and language, because the API
+row carries neither (§12). Re-check whether SISTRIX has since added a
+write endpoint before assuming this.
 
 **Two SISTRIX products, one of them in scope.** SISTRIX offers a
 pre-built AI Visibility Index over a very large fixed prompt pool (not
@@ -113,7 +115,10 @@ the format enforces it (§9.4 below). Market is not a tag: language and
 country are set per upload and apply to the whole file (§12) — and both
 menus are shorter than the tool's market coverage suggests, with the CSV
 import narrower than the manual panel, so the market set is checked
-against both lists before prompts are authored (§9.2).
+against both lists before prompts are authored (§9.2). At last check the
+import dialog's country selection was also not applied to the imported
+prompts (§12), so any market other than the language's default country
+goes through the manual panel and gets its flag checked after upload.
 
 ### 4.9 Engine coverage — SISTRIX implementation
 
@@ -133,7 +138,9 @@ that produced it (§9.1). Confirm the names themselves in the UI.
 
 Because the write is a CSV upload, the sign-off artefact and the validated
 CSV are the audit trail, and verification is a re-read of
-`ai_tracker view=prompts` after upload (§12 below).
+`ai_tracker view=prompts` after upload plus a UI check of every new
+prompt's country and language against the recorded upload settings — the
+API re-read cannot see either (§12 below).
 
 ### 4.12 Fresh prompts need time — SISTRIX figure
 
@@ -172,7 +179,7 @@ first, then the SISTRIX file. Load triggers are mandatory.
 
 | File | Sections | Load trigger |
 |---|---|---|
-| `references/sistrix-implementation.md` | §7 intake-state fields · §8 tracker reads and the fixed-pool intake source · §9.1 quota budget formula, the frequency trade-off and the subsample test for daily-vs-weekly · §9.2 the country and language lists and when to check them · §9.3 competitor configuration · §9.4 tag conventions and tag naming · §9.7 the brand-mention tag · §12 CSV contract, upload, verification · §13 Analyse reads, including the UI route to per-answer visibility · §15 SISTRIX gate items | After the corresponding core file, before the first SISTRIX read of an Intake step, before sizing any prompt budget, before fixing the market scope, before authoring or validating a CSV, before deciding or defending a run frequency, and before any Analyse read |
+| `references/sistrix-implementation.md` | §7 intake-state fields · §8 tracker reads and the fixed-pool intake source · §9.1 quota budget formula, the frequency trade-off and the subsample test for daily-vs-weekly · §9.2 the country and language lists and when to check them · §9.3 competitor configuration · §9.4 tag conventions and tag naming · §9.7 the brand-mention tag · §12 CSV contract, upload, the import dialog's country caveat and how a prompt's market can and cannot be changed, verification (API re-read plus the mandatory UI flag-and-language check) · §13 Analyse reads, including the two UI routes to per-answer visibility · §15 SISTRIX gate items | After the corresponding core file, before the first SISTRIX read of an Intake step, before sizing any prompt budget, before fixing the market scope, before authoring or validating a CSV, before deciding or defending a run frequency, and before any Analyse read |
 
 ---
 
@@ -180,7 +187,8 @@ first, then the SISTRIX file. Load triggers are mandatory.
 
 Core §16 applies, in its §14.16 form: the mandatory deliverable is one
 validated prompt CSV per language–country pair plus a handover note
-carrying the upload settings (language, country, engines, frequency) and
+carrying the upload settings (language, country, engines, frequency), the
+post-upload flag-and-language check (§12) and
 the two reporting instructions from core §14.16; the tracker configured
 from those files is the live result. Working artefacts and the optional
 Phase B deliverable are as in the core.
