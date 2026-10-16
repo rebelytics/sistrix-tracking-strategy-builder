@@ -10,10 +10,10 @@ Part of the **sistrix-tracking-strategy-builder** skill (CC BY 4.0 — Eoghan He
 - 8 — Intake: tracker reads, known API gaps, the fixed prompt pool as a source
 - 9.1 — Prompt volume: the update-quota budget formula, daily vs weekly
 - 9.2 — Market scope: the country and language lists, and the check timing
-- 9.3 — Competitor configuration
+- 9.3 — Competitor configuration and the alias pass
 - 9.4 — Tag taxonomy: the tag-position convention and tag naming
 - 9.7 — The brand-mention tag
-- 12 — Write: the CSV import contract, upload settings, the import dialog's country caveat, changing a prompt's market, verification (API re-read plus the UI flag-and-language check)
+- 12 — Write: the CSV import contract, upload settings, the import dialog's country caveat, changing a prompt's market, removing prompts (UI-only), verification (API re-read plus the UI flag-and-language check)
 - 13 — Analyse: what the API serves for tracker prompts, what it cannot, and the two UI routes to per-answer visibility
 - 15 — SISTRIX gate items
 
@@ -247,6 +247,19 @@ spelling only. Still **not confirmed**: whether the roster applies to
 custom prompts, the fixed pool or both — verify during the competitor
 step and record the answer in the intake state.
 
+**Alias pass (core §9.3).** The own-brand recognition list takes the
+full output of the core's alias pass — acronym, hyphenation and spacing
+variants, declined forms, legal-form suffix, other-language names.
+Whether a competitor slot takes aliases beside its name is **to verify**
+on the settings page; until it does, a competitor's acronym or declined
+form can surface as an entity of its own. How SISTRIX matches (case,
+substring, whole word) is undocumented, so the list is the only control.
+The core's post-first-run positive control reads here as: open the
+tracker's environment view in the UI and look for a roster brand listed
+under two spellings, then check `brand_found` on every branded prompt in
+`ai_tracker view=prompts` (observed at last verification on one tracker:
+a nominative-only list produced both failures within a week of runs).
+
 **The five rendered slots are a default, not a ceiling.** The settings
 page pre-renders five competitor slots beside an "Add competitor"
 control, and more can be added. Do not argue for a small roster from slot
@@ -443,6 +456,35 @@ Generic form: when a platform deduplicates on content, deleting and
 re-adding the same content may resurrect the old object with its old
 settings — verify a setting change on an object the platform has never
 seen before, not on a re-added one.
+
+### Removing or editing prompts
+
+**Removal is UI-only** — the MCP exposes no delete, and there is no undo.
+The bulk path, as observed at last verification on one tracker: project
+→ **Prompts** → **by prompts** → tick the row checkbox → the sticky bar
+"Choose the action…" → **Delete selected prompts** → a side panel lists
+the selected prompts **per AI model**, one checkbox per engine, so a
+prompt can be removed from some engines and kept on others → **Delete**.
+No browser confirm dialog follows the button.
+
+Gotchas met on the way (same observation):
+
+- The list paginates at 25 rows, and the pager sits under the "Finished
+  analysing" toast until the toast is closed.
+- Coordinate clicks on the sticky action bar landed on the row beneath
+  it and opened the prompt detail panel; a scripted click on the menu
+  item "Delete selected prompts" worked first time.
+- The row checkbox's value is the prompt hash. Read it to confirm the
+  selection before deleting — it is the only reliable identity check on
+  the page.
+
+Verify afterwards by re-reading `ai_tracker view=prompts` (dedupe first):
+the count has dropped by the number removed and the removed texts are
+absent. Reporting consequence: the first reading after a removal starts
+from the first run after it — a window that spans the removal averages
+two different prompt sets. Log the removal — texts, engines, date — in
+the strategy document's upload log beside the upload settings (§16), so
+the next Analyse knows where the series restarts.
 
 ### Wave order
 

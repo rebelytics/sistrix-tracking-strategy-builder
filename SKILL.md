@@ -1,7 +1,7 @@
 ---
 name: sistrix-tracking-strategy-builder
 description: 'SISTRIX companion to the platform-agnostic `ai-visibility-tracking-strategy-builder` skill — build or refine an AI visibility tracking strategy on SISTRIX''s custom prompt tracking (AI trackers), with this skill holding everything SISTRIX-specific: the tag-only grouping model and the tag-position convention, the semicolon CSV import format and its per-market/per-upload constraints, the update-quota budget formula and the daily-vs-weekly trade-off, competitor configuration, and how the Analyse step reads tracker data through the SISTRIX API/MCP. Load whenever the user mentions a SISTRIX AI tracker, SISTRIX custom prompts, "what prompts should we track in SISTRIX", a SISTRIX prompt CSV, SISTRIX AI visibility budget or quota, or an AI visibility strategy for a brand that uses SISTRIX. Requires the core skill `ai-visibility-tracking-strategy-builder` loaded alongside; companion to `sistrix-mcp` (recommended; API and MCP mechanics).'
-version: 1.3.0
+version: 1.4.0
 license: CC-BY-4.0
 origin: https://github.com/rebelytics/sistrix-tracking-strategy-builder
 maintainer: Eoghan Henn / rebelytics (eoghan@rebelytics.com)
@@ -179,7 +179,7 @@ first, then the SISTRIX file. Load triggers are mandatory.
 
 | File | Sections | Load trigger |
 |---|---|---|
-| `references/sistrix-implementation.md` | §7 intake-state fields · §8 tracker reads and the fixed-pool intake source · §9.1 quota budget formula, the frequency trade-off and the subsample test for daily-vs-weekly · §9.2 the country and language lists and when to check them · §9.3 competitor configuration · §9.4 tag conventions and tag naming · §9.7 the brand-mention tag · §12 CSV contract, upload, the import dialog's country caveat and how a prompt's market can and cannot be changed, verification (API re-read plus the mandatory UI flag-and-language check) · §13 Analyse reads, including the two UI routes to per-answer visibility · §15 SISTRIX gate items | After the corresponding core file, before the first SISTRIX read of an Intake step, before sizing any prompt budget, before fixing the market scope, before authoring or validating a CSV, before deciding or defending a run frequency, and before any Analyse read |
+| `references/sistrix-implementation.md` | §7 intake-state fields · §8 tracker reads and the fixed-pool intake source · §9.1 quota budget formula, the frequency trade-off and the subsample test for daily-vs-weekly · §9.2 the country and language lists and when to check them · §9.3 competitor configuration and the alias pass · §9.4 tag conventions and tag naming · §9.7 the brand-mention tag · §12 CSV contract, upload, the import dialog's country caveat and how a prompt's market can and cannot be changed, the UI-only removal path, verification (API re-read plus the mandatory UI flag-and-language check) · §13 Analyse reads, including the two UI routes to per-answer visibility · §15 SISTRIX gate items | After the corresponding core file, before the first SISTRIX read of an Intake step, before sizing any prompt budget, before fixing the market scope, before authoring or validating a CSV, before deciding or defending a run frequency, and before any Analyse read |
 
 ---
 
