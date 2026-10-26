@@ -1,15 +1,14 @@
 ---
 name: sistrix-tracking-strategy-builder
 description: 'SISTRIX companion to the platform-agnostic `ai-visibility-tracking-strategy-builder` skill — build or refine an AI visibility tracking strategy on SISTRIX''s custom prompt tracking (AI trackers), with this skill holding everything SISTRIX-specific: the tag-only grouping model and the tag-position convention, the semicolon CSV import format and its per-market/per-upload constraints, the update-quota budget formula and the daily-vs-weekly trade-off, competitor configuration, and how the Analyse step reads tracker data through the SISTRIX API/MCP. Load whenever the user mentions a SISTRIX AI tracker, SISTRIX custom prompts, "what prompts should we track in SISTRIX", a SISTRIX prompt CSV, SISTRIX AI visibility budget or quota, or an AI visibility strategy for a brand that uses SISTRIX. Requires the core skill `ai-visibility-tracking-strategy-builder` loaded alongside; companion to `sistrix-mcp` (recommended; API and MCP mechanics).'
-version: 1.4.0
+version: 1.4.3
 license: CC-BY-4.0
-origin: https://github.com/rebelytics/sistrix-tracking-strategy-builder
-maintainer: Eoghan Henn / rebelytics (eoghan@rebelytics.com)
+metadata:
+  author: Eoghan Henn and contributors
+  source: https://github.com/rebelytics/sistrix-tracking-strategy-builder
 ---
 
 # SISTRIX Tracking Strategy Builder
-
-**Created by Eoghan Henn / [rebelytics.com](https://www.rebelytics.com)**
 
 The **SISTRIX companion** to
 [`ai-visibility-tracking-strategy-builder`](https://github.com/rebelytics/ai-visibility-tracking-strategy-builder)
@@ -27,19 +26,6 @@ and how tracker data is read back for Analyse.
 of a core section with the same number. Read the core section first, then
 this skill's part. Running this skill without the core produces an import
 file with no strategy behind it.
-
-**Licence:** Released under
-[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Share and adapt
-for any purpose with appropriate credit.
-
-**Feedback & Support:** If the methodology here proves wrong or incomplete,
-or you hit SISTRIX behaviour this skill doesn't cover, log it and open an
-issue on the skill's
-[public repository](https://github.com/rebelytics/sistrix-tracking-strategy-builder),
-or contact Eoghan Henn via [rebelytics.com](https://www.rebelytics.com).
-Methodology findings that are not SISTRIX-specific belong on the core
-skill's repository. If a failure is the agent not following this skill,
-acknowledge and correct it rather than blaming the methodology.
 
 ---
 
@@ -195,26 +181,22 @@ Phase B deliverable are as in the core.
 
 ---
 
-## 17. Contributing back
+## Feedback on this skill
 
-Open an issue on
-[github.com/rebelytics/sistrix-tracking-strategy-builder](https://github.com/rebelytics/sistrix-tracking-strategy-builder)
-when something lands that would help the next person — a changed upload
-contract, a quota rule, a new engine, a pattern that only exists on
-SISTRIX. If the pattern would hold on any platform, it belongs on the core
-skill's repository. Don't fork in-session: feedback → issues → considered
+If the user finds the methodology wrong or incomplete, or hits SISTRIX
+behaviour this skill doesn't cover — a changed upload contract, a quota
+rule, a new engine, a pattern that only exists on SISTRIX — offer to draft
+a report for github.com/rebelytics/sistrix-tracking-strategy-builder,
+running the feedback pre-flight first. Findings that would hold on any
+platform belong on the core skill's repository,
+github.com/rebelytics/ai-visibility-tracking-strategy-builder. If the
+problem is the agent not following the skill's rules, acknowledge and
+correct it instead. Don't fork in-session: feedback → issues → considered
 patches → version bump is the path.
-
-## 18. Licence & attribution
-
-**Licence:** [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-Reuse, adapt, redistribute — just keep attribution.
-
-> SISTRIX Tracking Strategy Builder, maintained by Eoghan Henn
-> (www.rebelytics.com),
-> github.com/rebelytics/sistrix-tracking-strategy-builder.
 
 **Not affiliated with SISTRIX.** SISTRIX has not reviewed or endorsed
 this skill. Platform facts here were observed at last verification and
 carry re-check instructions; SISTRIX iterates, so verify before relying
 on any of them.
+
+SISTRIX Tracking Strategy Builder: Eoghan Henn and contributors | CC BY 4.0
