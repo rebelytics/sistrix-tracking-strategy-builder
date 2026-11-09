@@ -1,7 +1,7 @@
 ---
 name: sistrix-tracking-strategy-builder
 description: 'SISTRIX companion to the platform-agnostic `ai-visibility-tracking-strategy-builder` skill — build or refine an AI visibility tracking strategy on SISTRIX''s custom prompt tracking (AI trackers), with this skill holding everything SISTRIX-specific: the tag-only grouping model and the tag-position convention, the semicolon CSV import format and its per-market/per-upload constraints, the update-quota budget formula and the daily-vs-weekly trade-off, competitor configuration, and how the Analyse step reads tracker data through the SISTRIX API/MCP. Load whenever the user mentions a SISTRIX AI tracker, SISTRIX custom prompts, "what prompts should we track in SISTRIX", a SISTRIX prompt CSV, SISTRIX AI visibility budget or quota, or an AI visibility strategy for a brand that uses SISTRIX. Requires the core skill `ai-visibility-tracking-strategy-builder` loaded alongside; companion to `sistrix-mcp` (recommended; API and MCP mechanics).'
-version: 1.4.3
+version: 1.5.0
 license: CC-BY-4.0
 metadata:
   author: Eoghan Henn and contributors

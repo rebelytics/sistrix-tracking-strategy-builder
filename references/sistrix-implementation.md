@@ -72,7 +72,7 @@ Extend the core §7.2 `platform:` block with:
 | Upload settings (language, country, engines, frequency) of an existing tracker | not returned per prompt — the `view=prompts` row is `{prompt, brand_found, avg_pos, tags, models}`, with no country and no language field | Ask the user, or read the tracker's settings page; record in intake state. For the country and language actually applied to each prompt, read the flag and language column in the UI by-prompts view (§12, Verification) — an API re-read cannot verify them, and passed while two markets ran a week under the wrong country. |
 | Per-prompt answer text for tracker prompts | `ai_prompt_answers` serves only the global prompt pool — a tracker prompt returns `SISTRIX API Error (1000): no result` | Expected, not a defect. Qualitative reading of tracker answers happens in the UI; the API gives presence, position, tags and sources. |
 | Per-country entity counts | `country` filter can silently no-op | A per-country value identical to the all-countries aggregate is a fallback artefact, not data (`sistrix-mcp`). |
-| Per-answer visibility (executions naming the brand) | `ai_tracker view=prompts` gives `brand_found` (a per-question ever-flag) and `avg_pos`, and **no execution counts** | Not derivable from the API. Take it from the UI by-tags view with the period selector (§13) and state the window. Never substitute a `brand_found` tally (core §13.5). |
+| Per-answer visibility (executions naming the brand) | `ai_tracker view=prompts` gives `brand_found` (a per-question presence flag over a window the API does not expose) and `avg_pos`, and **no execution counts** | Not derivable from the API. Take it from the UI by-tags view with the period selector (§13) and state the window. Never substitute a `brand_found` tally (core §13.5). |
 
 ### The fixed prompt pool as an intake source
 
@@ -556,14 +556,19 @@ any number, then:
   (category). `brand_found` gives presence; `avg_pos` separates "found"
   from "prominent" — present but mid-pack on the highest-value broad
   prompts is not leading them.
-- **`brand_found` is a per-question ever-flag and must not be presented as
-  visibility.** It is `true` if the tracked brand was named in **any single
-  answer** to that prompt, at any point in the tracker's window — one mention
-  in a hundred answers sets it. `view=prompts` returns `brand_found` and
+- **`brand_found` is a per-question presence flag and must not be presented
+  as visibility.** It is `true` if the tracked brand was named in **any single
+  answer** to that prompt within a window the API does not expose — one
+  mention in a hundred answers sets it. `view=prompts` returns `brand_found` and
   `avg_pos` and **no execution counts**, so a per-answer share cannot be
   derived from the API at all. A `brand_found` tally is an at-least-once
   count; label it that way or leave it out. Core §13.5 holds the rule and the
   size of the distortion.
+- **A promote or drop decision keyed on `brand_found` reads its series, not
+  its current value** (core §13.6). The flag is not persistent: at last
+  verification it flipped true → false between two weekly reads of the same
+  prompt string. Record it per prompt per run, keyed on the deduped prompt
+  string, and act only when at least the last two readings agree.
 - **Visibility for a stakeholder deliverable = the share of answers naming
   the brand, with executions as the denominator, over a stated period — and
   that data is UI-only.** Route, in the tracker's prompts area:
