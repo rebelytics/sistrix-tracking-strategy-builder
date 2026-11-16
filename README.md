@@ -2,6 +2,8 @@
 
 Open-source **SISTRIX companion** to the platform-agnostic [`ai-visibility-tracking-strategy-builder`](https://github.com/rebelytics/ai-visibility-tracking-strategy-builder) skill, for building or refining an AI visibility tracking strategy on SISTRIX's custom prompt tracking (AI trackers). Load both into any MCP-capable AI agent (Claude, Cursor, Codex, n8n, etc.).
 
+Part of the [Open Skill Library](https://github.com/rebelytics/one-skill-to-rule-them-all/blob/main/OPEN-SKILL-LIBRARY.md), the open-source agent skills maintained with Task Observer.
+
 ## What this skill does
 
 The core skill holds the methodology — intake rings, allocation methods, the cardinality rule for containers versus tags, the three-way brand-mention split, prompt authoring, the disposition framework, the pattern library, the stakeholder-presentation rules and the quality gates. This skill holds everything SISTRIX-specific: the tag-only grouping model and the tag-position convention, the semicolon CSV import format and its per-market, per-upload constraints, the update-quota budget formula and the daily-vs-weekly trade-off, competitor configuration, and how the Analyse step reads tracker data through the SISTRIX API/MCP. Section numbers are shared: every "§N — SISTRIX implementation" part here extends the core's §N.
