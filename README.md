@@ -15,7 +15,7 @@ A SISTRIX AI tracker, SISTRIX custom prompts, "what prompts should we track in S
 ## What this repo contains
 
 - `SKILL.md` — the SISTRIX notes on the core's principles, the relationship to the core and to `sistrix-mcp`, and the section map.
-- `references/sistrix-implementation.md` — the SISTRIX parts of §7–§9, §12, §13 and §15: intake-state fields, tracker reads and API gaps, the quota budget formula and the daily-vs-weekly test, market scope (the country and language lists), competitor configuration, tag conventions and tag naming, the brand-mention tag, the CSV import contract and verification, Analyse reads, gate items.
+- `references/sistrix-implementation.md` — the SISTRIX parts of §7–§9, §12, §13 and §15: intake-state fields, tracker reads and API gaps, the quota budget formula, the crawl-history run rate and the daily-vs-weekly test, market scope (the country and language lists), competitor configuration, tag conventions and tag naming, the brand-mention tag, the CSV import contract and verification, Analyse reads, gate items.
 - `LICENSE` — CC BY 4.0.
 
 ## Install

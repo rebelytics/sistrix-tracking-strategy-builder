@@ -8,7 +8,7 @@ Part of the **sistrix-tracking-strategy-builder** skill (CC BY 4.0 — Eoghan He
 
 - 7 — Intake-state fields
 - 8 — Intake: tracker reads, known API gaps, the fixed prompt pool as a source
-- 9.1 — Prompt volume: the update-quota budget formula, daily vs weekly
+- 9.1 — Prompt volume: the update-quota budget formula, daily vs weekly, the crawl-history run rate
 - 9.2 — Market scope: the country and language lists, and the check timing
 - 9.3 — Competitor configuration and the alias pass
 - 9.4 — Tag taxonomy: the tag-position convention and tag naming
@@ -39,7 +39,9 @@ Extend the core §7.2 `platform:` block with:
 - `quota`: `monthly_updates`, `reserved`, `user_requested`, `remaining`,
   `last_read_on` — read off the projects list, arbitrated by the billing
   tooltip where the printed figures disagree (§9.1), because the plan's
-  capacity is not exposed by the API.
+  capacity is not exposed by the API — plus `period_start`, `period_end`
+  and `run_rate` (updates per day, steady state) from the crawl-history
+  page (§9.1).
 - `brand_mention_tags`: the three tag strings used for the §9.7 split.
 
 ---
@@ -157,6 +159,31 @@ remaining by 400. The main dashboard figures also lag or round
 inconsistently. Record all four numbers with a date in the intake state,
 and re-read after any change — frequency or tracker-count changes take on
 the order of tens of minutes to propagate.
+
+**The third read — the crawl-history page, for the period and the run
+rate** (observed on one account at last verification). The projects list
+and the tooltip say how much is left in the current payment period, but
+not when the period ends or what the existing trackers consume, so
+remaining alone cannot size a recurring budget. The projects list's "Show
+complete list" link opens the crawl history
+(`/monitoring/prompt-crawl-history`): a per-day table of manual,
+automatic and total updates covering the whole payment period, with
+future days shown as "-". Read two things off it:
+
+- **The period bounds** — the first and last day of the table. They say
+  how many days of the current period a new tracker would still consume.
+- **The steady-state run rate** — the existing trackers' consumption per
+  day, averaged over whole weeks, since a weekly tracker shows as a spike
+  on its run day. The automatic column is the recurring part; add manual
+  runs only where they recur.
+
+**Recurring headroom = package − steady-state run rate over one period,
+never this period's remaining.** Remaining is one period's leftover, not
+a recurring rate, and a new tracker is a recurring commitment. For example, a package of 10,000 updates a period, with
+existing trackers averaging 200 a day over whole weeks, leaves about
+10,000 − 30 × 200 = 4,000 updates a 30-day period for new prompts, whatever
+remaining reads mid-period. Feed that headroom, not remaining, into the
+`max_prompts` formula above.
 
 **Deriving the per-prompt reservation rate from an existing tracker**
 (verified at last check). Where the account already has one configured
@@ -646,8 +673,9 @@ Add to the core's gates:
   prompt is written — it is the one gate whose failure cannot be fixed
   after the fact, only re-authored.
 - **Pre-Write (§15.1):** budget derived from the quota formula with the
-  chosen engines and frequency, and the tooltip values recorded with a
-  date; upload settings per market recorded; every CSV passes the §15.4
+  chosen engines and frequency, sized on the recurring headroom from the
+  crawl-history run rate rather than on remaining, and the tooltip values
+  recorded with a date; upload settings per market recorded; every CSV passes the §15.4
   merged-set gates plus: first tag is a category on every row, exactly one
   `type:` tag per row, no semicolon in any prompt, **no ampersand in any
   tag name** (§9.4 — unfilterable in the UI, and expensive to rename
