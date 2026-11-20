@@ -1,6 +1,6 @@
 # SISTRIX implementation parts (§7–§9, §12, §13, §15)
 
-Part of the **sistrix-tracking-strategy-builder** skill (CC BY 4.0 — Eoghan Henn / [rebelytics.com](https://www.rebelytics.com)). This file holds the SISTRIX-specific part of each section; the platform-agnostic rules are in the core skill `ai-visibility-tracking-strategy-builder`, which must be loaded alongside. Section numbers are global across the skill family — the section map in `SKILL.md` says where each § lives.
+Part of the **sistrix-tracking-strategy-builder** skill (CC BY 4.0 — Eoghan Henn and contributors). This file holds the SISTRIX-specific part of each section; the platform-agnostic rules are in the core skill `ai-visibility-tracking-strategy-builder`, which must be loaded alongside. Section numbers are global across the skill family — the section map in `SKILL.md` says where each § lives.
 
 **Load trigger:** Read the core file for a section first, then the matching part here — before the first SISTRIX read of an Intake step (§8), before sizing any prompt budget (§9.1), before fixing the market scope (§9.2), before authoring or validating a CSV (§9.4, §9.7, §12), and before any Analyse read (§13).
 
@@ -154,8 +154,8 @@ directly: package allowance, reserved, user-requested and remaining. That
 is the cheap read and it comes first. The billing tooltip on hovering the
 quota values reads `consumed + forward_reserved + remaining = total` and
 remains the arbiter when the printed figures disagree with each other —
-they do: in the account observed, allowance minus reserved overstated
-remaining by 400. The main dashboard figures also lag or round
+they can: allowance minus reserved can overstate remaining by several
+hundred updates. The main dashboard figures also lag or round
 inconsistently. Record all four numbers with a date in the intake state,
 and re-read after any change — frequency or tracker-count changes take on
 the order of tens of minutes to propagate.
@@ -188,13 +188,16 @@ remaining reads mid-period. Feed that headroom, not remaining, into the
 **Deriving the per-prompt reservation rate from an existing tracker**
 (verified at last check). Where the account already has one configured
 tracker, divide its reserved updates by its prompt count and the rate
-falls out directly, with no change to the account: in the account
-observed, 2,060 / 103 = 20 updates per prompt per month, which is
+falls out directly, with no change to the account: for example, 1,600
+reserved for 80 prompts is 20 updates per prompt per month, which is
 arithmetically consistent with weekly runs on four engines and
 inconsistent with daily runs on any engine count. Free, instant, and it
 also cross-checks the engines and frequency an existing tracker is
 actually running (`SKILL.md` §4.9), which the API does not return. Try
-this before the delta technique below.
+this before the delta technique below. Where the new-project import flow
+is used, its cost line ("N prompts with M AI updates") gives the same
+rate before anything is created: M / N is the per-prompt monthly cost
+(prompts × engines × days in the month for daily).
 
 **Before/after delta technique** when the plan terms are unclear and no
 configured tracker exists to divide: note reserved and remaining; change
@@ -214,7 +217,7 @@ re-open both dialogs before relying on the lists; menus change without notice):
 
 | Path | Countries offered | Prompt languages offered |
 |---|---|---|
-| **Import CSV** dialog | All, Germany, Switzerland, Austria, United Kingdom, Spain, France, Italy, USA | German, English, French, Italian, Spanish |
+| **Import CSV** dialog | the dialog's own list, at last verification longer than eight countries plus All — re-read it | German, English, French, Italian, Spanish |
 | Manual **Add prompt** panel | ~50 countries, including Belgium, the Netherlands and Sweden | German, English, French, Italian, Spanish |
 
 Three consequences for the market scope decision, all of which have to be
@@ -230,28 +233,26 @@ taken **before prompts are authored**, not at upload:
   submission, tags typed by hand each time, and a background-processing
   wait between submissions. Price it in prompt count before committing —
   a market entered this way earns a deliberately smaller set.
-- **Bulk markets are the eight import countries.** Anything outside them
+- **Bulk markets are the import dialog's countries.** Anything outside them
   is a cost or an impossibility, so the market list in the strategy is
   checked against both lists above as a pair (language *and* country, for
   the path that will actually be used) before a single prompt is written.
   A set authored for a pair the tool cannot take is wasted work that only
   surfaces at upload.
-- **The import dialog's country selection was not applied at last check
-  — treat only the language's default country as import-reachable until
-  a re-test says otherwise.** In one account, files imported with a
-  non-default country selected (the hidden form field confirmed the
+- **The import dialog's country selection is not reliably applied —
+  verify it per import, never assume it.** In one account, files imported
+  with a non-default country selected (the hidden form field confirmed the
   selection before submit) landed on the country implied by the file
-  language: English on the United Kingdom, German on Germany. The working
-  hypothesis, under test at the time of writing, is that the CSV import
-  derives country from language; a French-language file imported with
-  France selected was the test case and its result was not yet known. The
+  language: English on the United Kingdom, German on Germany. A later
+  re-check found the selection applied: imports with USA and English
+  selected, one of them through the new-project flow, kept the US flag
+  after the first run. So the "import derives country from language"
+  hypothesis holds at most for some country and flow combinations. The
   manual panel did set a non-default country correctly (§12). Until the
-  hypothesis is resolved, this narrows the bulk path further than the
-  table says: a **language–default-country** pair is bulk, and every other
-  pair — Austria for German, Switzerland for any of its languages, the
-  USA for English — is priced as manual-panel work, or as an import plus
-  a flag check after the first run and a manual re-entry if the flag is
-  wrong. Record which the plan assumes.
+  pattern is known, price every pair other than **language–default-country**
+  as an import plus a flag check after the first run (and a manual
+  re-entry if the flag is wrong), or as manual-panel work. Record which
+  the plan assumes.
 
 SISTRIX iterates on both lists; re-read them in the live dialogs at the
 start of any market-scope discussion and update the table above.
@@ -274,6 +275,16 @@ spelling only. Still **not confirmed**: whether the roster applies to
 custom prompts, the fixed pool or both — verify during the competitor
 step and record the answer in the intake state.
 
+**Enter names and spellings by clicking the add control, never Return,
+and re-read the saved list after each competitor** (observed on one
+account at last verification). Return in a brand or competitor field
+submits the whole settings form, and the typed text can end up appended
+to the existing value (a brand saved as its name twice, run together).
+Adding an alternative spelling to a competitor added in the same session
+replaced that competitor's primary name; the fix is to add the plain name
+back as a spelling. Neither failure shows an error, so only the re-read
+catches it.
+
 **Alias pass (core §9.3).** The own-brand recognition list takes the
 full output of the core's alias pass — acronym, hyphenation and spacing
 variants, declined forms, legal-form suffix, other-language names.
@@ -286,6 +297,10 @@ tracker's environment view in the UI and look for a roster brand listed
 under two spellings, then check `brand_found` on every branded prompt in
 `ai_tracker view=prompts` (observed at last verification on one tracker:
 a nominative-only list produced both failures within a week of runs).
+For a per-answer check, open one answer in full (the magnifier on a
+history row in the prompt detail panel): its Brands panel labels each
+detected entity "Own brand" or "Competitors" and highlights the matched
+string in the answer (observed on one account at last verification).
 
 **The five rendered slots are a default, not a ceiling.** The settings
 page pre-renders five competitor slots beside an "Add competitor"
@@ -405,23 +420,31 @@ objects**, not a paste box, so it is not an authoring route either.
 - **Language and country are not in the CSV** — selected in the UI at
   upload, applying to the whole file. **Engines** and **run frequency**
   are also chosen at upload, not per prompt.
-- **The dialog's country selection was not applied at last check.**
-  Imported prompts — new texts and re-added ones alike — landed on the
-  country implied by the file language (English → United Kingdom, German →
-  Germany) regardless of the country chosen in the dialog, in one account
-  across two upload rounds. Working hypothesis, under test: the import
-  derives country from language. Consequence until it is resolved: route
-  every prompt whose market is not the language's default country through
-  the manual **Add prompt** panel, which did apply the selected country
-  (below), or import it and check the flag after its first run (§12,
-  Verification). §9.2 holds the market-scope consequence.
-- **The dialog's country and language menus are short, and they are not the
-  same menus the manual panel offers** (verified at last check): eight
-  countries plus "All" (Germany, Switzerland, Austria, United Kingdom,
-  Spain, France, Italy, USA) and five languages (German, English, French,
-  Italian, Spanish). §9.2 above holds the full comparison and the
-  strategy-time check; by the time a CSV exists, an unsupported pair is
-  already wasted authoring.
+- **The dialog's country selection is not reliably applied.** In one
+  account, imported prompts — new texts and re-added ones alike — landed
+  on the country implied by the file language (English → United Kingdom,
+  German → Germany) regardless of the country chosen, across two upload
+  rounds; a later re-check found imports with USA selected kept the US
+  flag.
+  Consequence: for every prompt whose market is not the
+  language's default country, check the flag after its first run (§12,
+  Verification), or route it through the manual **Add prompt** panel,
+  which did apply the selected country (below). §9.2 holds the
+  market-scope consequence.
+- **The new-project import previews each prompt's flag before creation**
+  (observed on one account at last verification). In **Create new
+  project → Import CSV**, after "Add N prompts" the form lists every
+  imported prompt with a country flag and language code, plus the monthly
+  cost line (§9.1), before the project exists. Read the preview against
+  the upload settings before creating; it does not replace the
+  post-first-run check.
+- **The dialog's country and language menus are not the same menus the
+  manual panel offers** (verified at last check): the countries are the
+  dialog's own list — at last verification longer than eight plus "All",
+  so re-read it rather than trusting any recorded list — and the languages
+  five (German, English, French, Italian, Spanish). §9.2 above holds the
+  full comparison and the strategy-time check; by the time a CSV exists,
+  an unsupported pair is already wasted authoring.
 - **Record the run frequency per file in the handover.** The UI gives no
   way to read an existing batch's frequency back afterwards, so the
   handover note and the intake state are the only record (§7).
@@ -457,12 +480,12 @@ behaviours make it slower than it looks (verified at last check):
   each submission. A missed reset silently files the prompt under the
   wrong market or the wrong frequency.
 
-Against that cost, one thing the panel does that the import did not at
-last check: **it applied the selected country** — a prompt entered
+Against that cost, one thing the panel did where the import did not in
+one account: **it applied the selected country** — a prompt entered
 manually with a non-default country carried that country's flag
 afterwards. So the panel is not only the fallback for pairs the import
-dialog does not list; it is, until the import's country handling is
-re-tested, the reliable route for any non-default-country prompt.
+dialog does not list; it is the route that has not yet failed for a
+non-default-country prompt.
 
 ### Changing a prompt's market
 
@@ -473,7 +496,7 @@ the correct country selected, they reappeared with the **old country flag
 and the old execution history** — the platform keys prompt identity on the
 text and revived the earlier records. Two mechanisms were in play and the
 second explains the first: the import did not apply the country selection
-even to never-before-seen texts (above), and a re-added text resurfaces
+even to never-before-seen texts in that account (above), and a re-added text resurfaces
 its previous record. Either way the correction did not happen, and the
 revived records carried their pre-deletion executions into the current
 window as if nothing had been touched. To change a prompt's
@@ -529,6 +552,19 @@ prompt count per first-tag category equals the approved allocation; every
 row carries exactly one `type:` tag; no prompt lost its tags in transit
 (a `tags:[]` row that is not a duplicate is an upload defect). Record the
 result as the verification log (core §12.6) and the upload settings used.
+**The reconcile against the CSV is case-folded:** `ai_tracker
+view=prompts` returns the prompt text lowercased (observed on one tracker
+at last verification), so fold case and trim on both sides before
+matching, or every mixed-case prompt reads as missing.
+
+**Order the checks by read path: API first, UI once it catches up.**
+After "Add N prompts" the API listed the new prompts with their tags and
+engines within minutes, while the UI prompt list still showed the old
+total (observed on one account at last verification). The lagging UI is
+not a failed import. Run the API reconcile first, then the UI step below
+once the UI count matches the API's, or after the first run. While the
+import is processing the add button reads "Filter now"; wait for it to
+clear before a second import.
 
 **Then the mandatory UI step: check every new prompt's country flag and
 language against the recorded upload settings.** The API row is `{prompt,
@@ -544,11 +580,10 @@ in one account at last check:
   `ai.sistrix.com/monitoring/<hash>/prompts-grouped/tags/tags/lang/all/period/<p>`.
   Each row shows the prompt, a country flag icon and a language-code cell.
 - **Reading the flag programmatically:** the flag is an inline SVG sprite
-  whose `viewBox` y-offset selects the country. Values seen in one account:
-  `10080` Germany, `13860` United Kingdom, `3960` Belgium. Treat these as
-  that account's observed values, not a lookup table — confirm one known
-  prompt per market before trusting the offsets, and prefer the visible
-  flag or a hover title where the page offers one.
+  whose `viewBox` y-offset selects the country. The offsets are not
+  documented and are not a lookup table — read the offset of one known
+  prompt per market before trusting any, and prefer the visible flag or a
+  hover title where the page offers one.
 - **Pagination:** page links are hidden `span.page-lnk-N` anchors that
   exist only near the current page, so loop to the highest available `N`
   and repeat until no higher one appears; a single-page read of a
@@ -667,9 +702,9 @@ Add to the core's gates:
 - **Pre-authoring (§15.1):** every language–country pair in the approved
   market scope checked against **both** SISTRIX lists (§9.2) and recorded
   as import-capable, manual-panel-only (with the extra cost accepted by the
-  user) or impossible (with the fallback decided) — where, until the import
-  dialog's country handling is re-tested, import-capable means the
-  language's default country only (§9.2). Run this before a single
+  user) or impossible (with the fallback decided) — where an import-capable
+  pair other than the language's default country carries a post-first-run
+  flag check in the plan (§9.2). Run this before a single
   prompt is written — it is the one gate whose failure cannot be fixed
   after the fact, only re-authored.
 - **Pre-Write (§15.1):** budget derived from the quota formula with the
